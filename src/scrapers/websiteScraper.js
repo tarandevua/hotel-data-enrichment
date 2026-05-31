@@ -19,6 +19,7 @@ import { chromium } from 'playwright';
 import { logger } from '../utils/logger.js';
 import { withRetry, sleep } from '../utils/retry.js';
 import { extractEmails, extractInstagram } from '../utils/regex.js';
+import { decodeCloudflareEmail } from '../utils/cloudflare.js';
 
 const HEADERS = {
   'User-Agent':
@@ -104,14 +105,23 @@ function normalizeUrl(baseUrl, href) {
 function parsePage(html) {
   const $ = cheerio.load(html);
 
+  let cloudflareEmails = [];
   let email = null;
   let instagram = null;
-
-  // --------------------------------------------------
-  // EMAILS FROM MAILTO LINKS
-  // --------------------------------------------------
-
+  
   const mailtoEmails = [];
+
+  $('a[href*="/cdn-cgi/l/email-protection"]').each((_, el) => {
+    const span = $(el).find('.__cf_email__');
+    const encoded = span.attr('data-cfemail');
+
+    if (encoded) {
+      try {
+        const decoded = decodeCloudflareEmail(encoded);
+        cloudflareEmails.push(decoded.toLowerCase());
+      } catch (e) {}
+    }
+  });
 
   $('a[href^="mailto:"]').each((_, el) => {
     const href = $(el).attr('href') || '';
@@ -139,6 +149,7 @@ function parsePage(html) {
     ...new Set([
       ...mailtoEmails,
       ...textEmails,
+      ...cloudflareEmails,
     ]),
   ];
 
@@ -278,11 +289,8 @@ export async function scrapeHotelWebsite(websiteUrl) {
 
           for (const link of links) {
             try {
-              const html =
-                await fetchHtml(link);
-
-              const pageData =
-                parsePage(html);
+              const html = await fetchHtml(link);
+              const pageData = parsePage(html);
 
               if (!email && pageData.email) {
                 email = pageData.email;
