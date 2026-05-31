@@ -20,6 +20,7 @@ import { logger } from '../utils/logger.js';
 import { withRetry, sleep } from '../utils/retry.js';
 import { extractEmails, extractInstagram } from '../utils/regex.js';
 import { decodeCloudflareEmail } from '../utils/cloudflare.js';
+import { extractInstagramHandle } from '../utils/instagram.js';
 
 const HEADERS = {
   'User-Agent':
@@ -164,10 +165,10 @@ function parsePage(html) {
 
     const href = $(el).attr('href');
 
-    if (href) {
-      instagram = href
-        .split('?')[0]
-        .replace(/\/$/, '');
+    const handle = extractInstagramHandle(href);
+
+    if (handle) {
+      instagram = handle;
     }
   });
 
