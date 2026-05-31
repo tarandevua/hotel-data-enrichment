@@ -19,7 +19,7 @@
  * Empty / null fields are replaced with empty string for CSV safety.
  *
  * @param {Object} booking   - { hotelName }
- * @param {Object} places    - { name, phone, website }
+ * @param {Object} places    - { name, phone, website, googleMapsUrl }
  * @param {Object} website   - { email, instagram }
  * @param {string} sourceUrl - Original Booking.com URL
  * @returns {HotelRecord}
@@ -34,6 +34,7 @@ export function normalizeHotelRecord(booking, places, website, sourceUrl) {
     email:     safe(website?.email),
     instagram: safe(website?.instagram),
     source:    sourceUrl ?? 'booking.com',
+    googleMapsUrl: safe(places?.googleMapsUrl),
   };
 }
 

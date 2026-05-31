@@ -34,14 +34,14 @@ export async function processSingleHotel(url, apiKey, { json = false } = {}) {
   logger.info('pipeline', `[1/3] Hotel name: "${booking.hotelName ?? 'unknown'}"`);
 
   // ── Step 3: Google Places enrichment ─────────────────────────────────────
-  let places = { name: null, phone: null, website: null };
+  let places = { name: null, phone: null, website: null, googleMapsUrl: null };
   if (booking.hotelName) {
     places = await enrichWithGooglePlaces(booking.hotelName, apiKey);
   } else {
     logger.warn('pipeline', 'Skipping Places — no hotel name available');
   }
 
-  logger.info('pipeline', `[2/3] Places: phone=${places.phone ?? '-'}, website=${places.website ?? '-'}`);
+  logger.info('pipeline', `[2/3] Places: phone=${places.phone ?? '-'}, website=${places.website ?? '-'}, googleMapsUrl=${places.googleMapsUrl ?? '-'}`);
 
   // ── Step 4: Website scrape ────────────────────────────────────────────────
   const website = await scrapeHotelWebsite(places.website ?? null);

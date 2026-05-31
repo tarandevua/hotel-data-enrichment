@@ -3,7 +3,7 @@
  *
  * Flow:
  *   1. findplacefromtext  → place_id
- *   2. place details      → name, phone, website
+ *   2. place details      → name, phone, website, place_id
  *
  * ⚠️  This module ONLY uses the official API. No Google Maps scraping.
  */
@@ -83,12 +83,12 @@ async function fetchPlaceDetails(placeId, apiKey) {
  *
  * @param {string} hotelName - Hotel name extracted from Booking.com
  * @param {string} apiKey    - Google Places API key
- * @returns {Promise<{ name: string|null, phone: string|null, website: string|null }>}
+ * @returns {Promise<{ name: string|null, phone: string|null, website: string|null, googleMapsUrl: string|null }>}
  */
 export async function enrichWithGooglePlaces(hotelName, apiKey) {
   if (!apiKey) {
     logger.warn('places', 'GOOGLE_API_KEY not set — skipping Places enrichment');
-    return { name: null, phone: null, website: null };
+    return { name: null, phone: null, website: null, googleMapsUrl: null };
   }
 
   logger.info('places', `Searching Google Places for: "${hotelName}"`);
@@ -99,7 +99,7 @@ export async function enrichWithGooglePlaces(hotelName, apiKey) {
         const placeId = await findPlaceId(hotelName, apiKey);
 
         if (!placeId) {
-          return { name: null, phone: null, website: null };
+          return { name: null, phone: null, website: null, googleMapsUrl: null };
         }
 
         const details = await fetchPlaceDetails(placeId, apiKey);
@@ -109,6 +109,9 @@ export async function enrichWithGooglePlaces(hotelName, apiKey) {
           phone:   details.formatted_phone_number   ??
                    details.international_phone_number ?? null,
           website: details.website                  ?? null,
+          googleMapsUrl: placeId
+            ? `https://www.google.com/maps/place/?q=place_id:${placeId}`
+            : null,
         };
 
         logger.info('places', `Enriched: ${JSON.stringify(result)}`);
@@ -121,6 +124,6 @@ export async function enrichWithGooglePlaces(hotelName, apiKey) {
       hotel: hotelName,
       reason: err.message,
     });
-    return { name: null, phone: null, website: null };
+    return { name: null, phone: null, website: null, googleMapsUrl: null };
   }
 }
