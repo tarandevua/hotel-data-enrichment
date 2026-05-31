@@ -27,21 +27,25 @@ cp .env.example .env
 ## Usage
 
 ### Single URL
+
 ```bash
 node src/index.js https://www.booking.com/hotel/tr/wolf-of-the-city.en-gb.html
 ```
 
 ### Multiple URLs
+
 ```bash
 node src/index.js <url1> <url2> <url3>
 ```
 
 ### From a file (`urls.txt` — one URL per line)
+
 ```bash
 node src/index.js --file urls.txt
 ```
 
 ### With JSON export + custom concurrency
+
 ```bash
 node src/index.js --json --concurrency 5 --file urls.txt
 ```
@@ -51,12 +55,14 @@ node src/index.js --json --concurrency 5 --file urls.txt
 ## Output
 
 **`hotels.csv`** (always written):
+
 ```csv
-name,phone,website,email,instagram,source
-Wolf Of The City Hotel & SPA,+905417246010,http://wolfofthecityhotel.com,info@wolfofthecityhotel.com,https://instagram.com/wolfhotel,booking.com
+name,phone,website,email,instagram,source,googleMapsUrl
+Wolf Of The City Hotel & SPA,+905417246010,http://wolfofthecityhotel.com,info@wolfofthecityhotel.com,https://instagram.com/wolfhotel,booking.com,https://www.google.com/maps/place/?q=place_id:ChIJETabBByQwxQRfIBQYLkVckA
 ```
 
 **`hotels.json`** (with `--json` flag):
+
 ```json
 [
   {
@@ -65,7 +71,8 @@ Wolf Of The City Hotel & SPA,+905417246010,http://wolfofthecityhotel.com,info@wo
     "website": "http://wolfofthecityhotel.com",
     "email": "info@wolfofthecityhotel.com",
     "instagram": "https://instagram.com/wolfhotel",
-    "source": "https://www.booking.com/hotel/tr/wolf-of-the-city.en-gb.html"
+    "source": "https://www.booking.com/hotel/tr/wolf-of-the-city.en-gb.html",
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJETabBByQwxQRfIBQYLkVckA"
   }
 ]
 ```
@@ -84,6 +91,8 @@ src/
 ├── services/
 │   └── googlePlacesService.js # Google Places API (findplacefromtext → details)
 ├── utils/
+│   ├── cloudflare.js         # Decode Cloudflare Email
+│   ├── instagram.js          # Extract Instagram handle from any Instagram URL
 │   ├── normalize.js          # Merge + null-safe normalization
 │   ├── regex.js              # Email & Instagram regex utilities
 │   ├── logger.js             # Structured color logger
@@ -96,21 +105,21 @@ src/
 
 ## Environment Variables
 
-| Variable         | Required | Description                  |
-|------------------|----------|------------------------------|
-| `GOOGLE_API_KEY` | Yes      | Google Places API key        |
+| Variable         | Required | Description                                           |
+| ---------------- | -------- | ----------------------------------------------------- |
+| `GOOGLE_API_KEY` | Yes      | Google Places API key                                 |
 | `LOG_LEVEL`      | No       | `debug` / `info` / `warn` / `error` (default: `info`) |
 
 ---
 
 ## CLI Options
 
-| Flag                  | Default | Description                              |
-|-----------------------|---------|------------------------------------------|
-| `--file <path>`       | —       | Load URLs from newline-separated file    |
-| `--json`              | false   | Also export results to `hotels.json`     |
-| `--concurrency <n>`   | 3       | Max parallel hotel pipelines             |
-| `-h`, `--help`        | —       | Show help                                |
+| Flag                | Default | Description                           |
+| ------------------- | ------- | ------------------------------------- |
+| `--file <path>`     | —       | Load URLs from newline-separated file |
+| `--json`            | false   | Also export results to `hotels.json`  |
+| `--concurrency <n>` | 3       | Max parallel hotel pipelines          |
+| `-h`, `--help`      | —       | Show help                             |
 
 ---
 
