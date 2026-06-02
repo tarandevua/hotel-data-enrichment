@@ -10,6 +10,11 @@
  * @property {string} email
  * @property {string} instagram
  * @property {string} source
+ * @property {string} googleMapsUrl
+ * @property {string} [websiteStyleNotes]
+ * @property {string} [uniqueAngles]
+ * @property {string} [proposalEmail]
+ * @property {string} [instagramMessage]
  */
 
 /**

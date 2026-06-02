@@ -1,14 +1,14 @@
 /**
  * pipeline.js — Core enrichment pipeline for a single hotel URL.
  *
- * Orchestrates: Booking → Places → Website → Normalize → Export
+ * Orchestrates: Booking → Places → Website → Normalize → Proposal
  */
 
 import { scrapeBookingHotel } from './scrapers/bookingScraper.js';
 import { enrichWithGooglePlaces } from './services/googlePlacesService.js';
 import { scrapeHotelWebsite } from './scrapers/websiteScraper.js';
+import { generateTailoredProposal } from './services/proposalService.js';
 import { normalizeHotelRecord } from './utils/normalize.js';
-import { appendToCSV, appendToJSON } from './export/csvWriter.js';
 import { logger } from './utils/logger.js';
 
 /**
@@ -17,10 +17,22 @@ import { logger } from './utils/logger.js';
  * @param {string} url           - Booking.com hotel URL
  * @param {string} apiKey        - Google Places API key
  * @param {Object} [opts]
- * @param {boolean} [opts.json]  - Also export to JSON
+ * @param {boolean} [opts.proposal]
+ * @param {string} [opts.openRouterApiKey]
+ * @param {string} [opts.openRouterModel]
+ * @param {string} [opts.proposalOffer]
  * @returns {Promise<import('./utils/normalize.js').HotelRecord>}
  */
-export async function processSingleHotel(url, apiKey, { json = false } = {}) {
+export async function processSingleHotel(
+  url,
+  apiKey,
+  {
+    proposal = false,
+    openRouterApiKey = null,
+    openRouterModel = null,
+    proposalOffer = null,
+  } = {},
+) {
   logger.info('pipeline', `━━━ START ━━━ ${url}`);
 
   // ── Step 2: Booking.com scrape ────────────────────────────────────────────
@@ -46,18 +58,24 @@ export async function processSingleHotel(url, apiKey, { json = false } = {}) {
   // ── Step 4: Website scrape ────────────────────────────────────────────────
   const website = await scrapeHotelWebsite(places.website ?? null);
 
-  logger.info('pipeline', `[3/3] Website: email=${website.email ?? '-'}, instagram=${website.instagram ?? '-'}`);
+  logger.info('pipeline', `[3/4] Website: email=${website.email ?? '-'}, instagram=${website.instagram ?? '-'}`);
 
   // ── Step 5: Normalize ─────────────────────────────────────────────────────
-  const record = normalizeHotelRecord(booking, places, website, url);
+  let record = normalizeHotelRecord(booking, places, website, url);
+
+  // ── Step 6: AI proposal generation ────────────────────────────────────────
+  if (proposal) {
+    const proposalData = await generateTailoredProposal(record, {
+      apiKey: openRouterApiKey,
+      model: openRouterModel ?? undefined,
+      offer: proposalOffer ?? undefined,
+    });
+
+    record = { ...record, ...proposalData };
+    logger.info('pipeline', `[4/4] Proposal generated: ${record.proposalEmail ? 'yes' : 'no'}`);
+  }
 
   logger.info('pipeline', `Normalized record`, record);
-
-  // ── Step 6: Export ────────────────────────────────────────────────────────
-  await appendToCSV([record]);
-  if (json) {
-    await appendToJSON([record]);
-  }
 
   logger.info('pipeline', `━━━ DONE  ━━━ ${url}\n`);
   return record;

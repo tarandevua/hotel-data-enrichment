@@ -12,6 +12,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@openrouter/sdk": "^0.12.79",
     "axios": "^1.7.2",
     "cheerio": "^1.0.0",
     "csv-writer": "^1.6.0",

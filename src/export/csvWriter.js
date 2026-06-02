@@ -12,12 +12,17 @@ export const CSV_PATH = path.resolve(process.cwd(), 'hotels.csv');
 
 /** Column definitions — order matches the spec */
 const CSV_COLUMNS = [
-  { id: 'name',      title: 'name'      },
-  { id: 'phone',     title: 'phone'     },
-  { id: 'website',   title: 'website'   },
-  { id: 'email',     title: 'email'     },
-  { id: 'instagram', title: 'instagram' },
-  { id: 'source',    title: 'source'    },
+  { id: 'name',              title: 'name'              },
+  { id: 'phone',             title: 'phone'             },
+  { id: 'website',           title: 'website'           },
+  { id: 'email',             title: 'email'             },
+  { id: 'instagram',         title: 'instagram'         },
+  { id: 'source',            title: 'source'            },
+  { id: 'googleMapsUrl',     title: 'googleMapsUrl'     },
+  { id: 'websiteStyleNotes', title: 'websiteStyleNotes' },
+  { id: 'uniqueAngles',      title: 'uniqueAngles'      },
+  { id: 'proposalEmail',     title: 'proposalEmail'     },
+  { id: 'instagramMessage',  title: 'instagramMessage'  },
 ];
 
 /**

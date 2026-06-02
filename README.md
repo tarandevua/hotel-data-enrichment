@@ -6,6 +6,12 @@ A production-ready Node.js pipeline that enriches Booking.com hotel URLs with co
 Booking.com URL → Hotel Name → Google Places (phone + website) → Website Scrape (email + Instagram) → hotels.csv
 ```
 
+With proposal generation enabled:
+
+```
+Hotel Website → Style/brand analysis → OpenRouter model request → tailored email + Instagram DM
+```
+
 ---
 
 ## Setup
@@ -50,6 +56,27 @@ node src/index.js --file urls.txt
 node src/index.js --json --concurrency 5 --file urls.txt
 ```
 
+### With tailored proposal generation
+
+```bash
+node src/index.js --proposal --proposal-offer "AI booking automation and website conversion improvements" <url>
+```
+
+### Proposal generation only
+
+Skip Booking.com scraping, Google Places, and contact scraping when you already know the hotel website:
+
+```bash
+node src/index.js --proposal-only --website https://hotel.example --hotel-name "Example Hotel" --json
+```
+
+You can also pass website URLs positionally or from a file:
+
+```bash
+node src/index.js --proposal-only https://hotel-a.example https://hotel-b.example
+node src/index.js --proposal-only --file hotel-websites.txt
+```
+
 ---
 
 ## Output
@@ -72,7 +99,11 @@ Wolf Of The City Hotel & SPA,+905417246010,http://wolfofthecityhotel.com,info@wo
     "email": "info@wolfofthecityhotel.com",
     "instagram": "https://instagram.com/wolfhotel",
     "source": "https://www.booking.com/hotel/tr/wolf-of-the-city.en-gb.html",
-    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJETabBByQwxQRfIBQYLkVckA"
+    "googleMapsUrl": "https://www.google.com/maps/place/?q=place_id:ChIJETabBByQwxQRfIBQYLkVckA",
+    "websiteStyleNotes": "Modern wellness-led positioning with spa imagery and direct booking cues.",
+    "uniqueAngles": "spa focus | Antalya location | direct booking CTA",
+    "proposalEmail": "Subject: ...",
+    "instagramMessage": "Hi ..."
   }
 ]
 ```
@@ -108,6 +139,9 @@ src/
 | Variable         | Required | Description                                           |
 | ---------------- | -------- | ----------------------------------------------------- |
 | `GOOGLE_API_KEY` | Yes      | Google Places API key                                 |
+| `OPENROUTER_API_KEY` | For `--proposal` | OpenRouter API key for model requests |
+| `OPENROUTER_MODEL` | No | OpenRouter model id (default: `openai/gpt-5`) |
+| `PROPOSAL_OFFER` | No | Default offer/service description for generated outreach |
 | `LOG_LEVEL`      | No       | `debug` / `info` / `warn` / `error` (default: `info`) |
 
 ---
@@ -119,6 +153,14 @@ src/
 | `--file <path>`     | —       | Load URLs from newline-separated file |
 | `--json`            | false   | Also export results to `hotels.json`  |
 | `--concurrency <n>` | 3       | Max parallel hotel pipelines          |
+| `--proposal`        | false   | Analyze the hotel website and generate tailored outreach |
+| `--proposal-only`   | false   | Skip Booking/Google/contact scraping and only generate outreach from website URLs |
+| `--website <url>`   | —       | Hotel website URL for `--proposal-only` |
+| `--hotel-name <name>` | hostname | Hotel/property name for `--proposal-only` |
+| `--email <email>`   | —       | Known email for proposal-only output/context |
+| `--instagram <handle>` | —    | Known Instagram for proposal-only output/context |
+| `--proposal-offer <text>` | `PROPOSAL_OFFER` | Service/offer used in the generated copy |
+| `--openrouter-model <id>` | `OPENROUTER_MODEL` / `openai/gpt-5` | Model used through OpenRouter |
 | `-h`, `--help`      | —       | Show help                             |
 
 ---
@@ -129,3 +171,5 @@ src/
 - **Graceful degradation**: each stage can fail without breaking the pipeline
 - **4-level fallback selectors** for Booking.com (handles HTML structure changes)
 - Partial results always exported to CSV even if enrichment is incomplete
+- Proposal generation is optional and returns empty proposal fields if OpenRouter or the target website fails
+- `--proposal-only` avoids all scraping/enrichment services except opening the hotel website for proposal context
